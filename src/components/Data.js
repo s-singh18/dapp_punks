@@ -7,7 +7,8 @@ const Data = ({ maxSupply, totalSupply, cost, balance }) => {
         <strong>Available to Mint:</strong> {maxSupply - totalSupply}
       </p>
       <p>
-        <strong>Cost to Mint:</strong> {ethers.utils.formatUnits(cost, "ether")}
+        <strong>Cost to Mint:</strong>
+        {ethers.utils.formatUnits(cost, "ether") + " "}
         ETH
       </p>
       <p>

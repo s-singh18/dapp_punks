@@ -12,6 +12,10 @@ contract NFT is ERC721Enumerable, Ownable {
     uint256 public cost;
     uint256 public maxSupply;
     uint256 public allowMintingOn;
+    uint256 public maxBalance;
+    bool public mintingOn = true;
+
+    mapping(address => bool) public whitelist;
 
     event Mint(uint256 amount, address minter);
     event Withdraw(uint256 amount, address owner);
@@ -28,11 +32,56 @@ contract NFT is ERC721Enumerable, Ownable {
         maxSupply = _maxSupply;
         allowMintingOn = _allowMintingOn;
         baseURI = _baseURI;
+        maxBalance = maxSupply;
     }
 
-    function mint(uint256 _mintAmount) public payable {
+    modifier onlyWhitelistedUser() {
+        require(whitelist[msg.sender] == true);
+        _;
+    }
+
+    function addUser(address _userAddress) public onlyOwner {
+        whitelist[_userAddress] = true;
+    }
+
+    function removeUser(address _userAddress) public onlyOwner {
+        whitelist[_userAddress] = false;
+    }
+
+    function turnMintingOn() public onlyOwner {
+        mintingOn = true;
+    }
+
+    function turnMintingOff() public onlyOwner {
+        mintingOn = false;
+    }
+
+    function toggleMinting() public onlyOwner {
+        if (mintingOn == true) {
+            turnMintingOff();
+        } else if (mintingOn == false) {
+            turnMintingOn();
+        }
+    }
+
+    function setMaxBalance(uint256 _balance) public onlyOwner {
+        require(_balance < maxSupply);
+        maxBalance = _balance;
+    }
+
+    function mint(uint256 _mintAmount) public payable onlyWhitelistedUser {
         // Create a token
-        require(block.timestamp >= allowMintingOn);
+        require(
+            balanceOf(msg.sender) + _mintAmount <= maxBalance,
+            "User token balance exceeds max allowed balance"
+        );
+
+        require(mintingOn == true, "Minting must be turned on");
+
+        require(
+            block.timestamp >= allowMintingOn,
+            "Mint in the alotted time period"
+        );
 
         require(_mintAmount > 0);
 
